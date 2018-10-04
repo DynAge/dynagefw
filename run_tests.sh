@@ -1,0 +1,1 @@
+nosetests -v --with-coverage --with-doctest

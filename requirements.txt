@@ -1,0 +1,3 @@
+flatten-dict
+flywheel-sdk
+-e https://github.com/flywheel-io/bids-client
