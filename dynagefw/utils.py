@@ -156,7 +156,7 @@ def compare_info_dicts(current_info, new_info):
     return changes, new
 
 
-def load_tabular_file(filename):
+def load_tabular_file(filename, subject_col, session_col):
     f = Path(filename)
     ext = f.suffix
 
@@ -169,11 +169,11 @@ def load_tabular_file(filename):
     else:
         raise Exception("Cannot infer filetype {}".format(f))
 
-    if "subject" not in df.columns:
-        raise Exception("A 'subject' column is required in the tabular data, but cannot be found in {}".format(f))
+    if subject_col not in df.columns:
+        raise Exception("A '{subject_col}' column is required in the tabular data, but cannot be found in {}".format(f))
 
-    if "session" not in df.columns:
-        df["session"] = ""
+    if session_col not in df.columns:
+        df[session_col] = ""
     return df
 
 
