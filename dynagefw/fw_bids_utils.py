@@ -24,7 +24,8 @@ def handle_project(fw, project_label, group_id, create=False, raise_on=None):
     found = False
     for ep in existing_projs:
         if (ep['label'] == project_label) and (ep['group'] == group_id):
-            logger.info('Project (%s) was found. Adding data to existing project.' % project_label)
+            logger.info('Project (%s) was found. Working withexisting '
+                        'project.' % project_label)
             # project exists
             project = ep
             found = True

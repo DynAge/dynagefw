@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import pandas as pd
 import flywheel
 from flywheel_bids import upload_bids
@@ -40,7 +41,7 @@ def upload_info(fw, project_id, subject_name, session_name, level, info_flat,
     if diff and not update_values:
         raise Exception(
             "update_values is False but you want to upload changed values {} {} {} {}" \
-            .format(subject_name, session_name, level, diff))
+                .format(subject_name, session_name, level, diff))
 
     # only upload new values
     if new or diff:
@@ -123,6 +124,23 @@ def upload_tabular_file_wrapper(filename, project_label, group_id,
                         session_col)
 
 
+def download_tabular_file_wrapper(filename, project_label, group_id, api_key):
+    api_key = get_fw_api(api_key)
+    fw = flywheel.Flywheel(api_key)
+
+    project = handle_project(fw, project_label, group_id, create=False,
+                             raise_on="missing")
+    project_id = project["id"]
+
+    df_subject, df_session = get_info_for_all(fw, project_id)
+    df_subject.drop(columns=["session_id"], inplace=True)
+    df_session.drop(columns=["BIDS.Label", "BIDS.Subject"], inplace=True)
+
+    df = pd.merge(df_subject, df_session, how="outer", on="subject")
+    Path(filename).parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(filename, index=False, sep="\t")
+
+
 def get_info_for_all(fw, project_id):
     """
     """
@@ -133,8 +151,6 @@ def get_info_for_all(fw, project_id):
     existing_sessions = fw.get_project_sessions(project_id)
 
     for es in existing_sessions:
-        if not hasattr(es, "id"):
-            print("hhh")
         session = fw.get_session(es.id)
         session_name = session['label']
         subject_name = session['subject']['code']
@@ -146,7 +162,13 @@ def get_info_for_all(fw, project_id):
 
         info_nested_session = get_info_dict("session", session)
         info_flat_session = flatten_dict(info_nested_session)
+        # add session age
+        # fixme age floating point issue
+        info_flat_session["age"] = session.age_years
+
         df_session_ = pd.DataFrame(info_flat_session, index=[subject_name])
+
+
         df_session_["session"] = session_name
         df_session = df_session.append(df_session_, sort=True)
 

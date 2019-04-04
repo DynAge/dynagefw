@@ -17,15 +17,12 @@ VERSION = "xxx"
 
 PACKAGES = find_packages()
 
-
-
 if __name__ == "__main__":
 
     if os.path.exists('MANIFEST'):
         os.remove('MANIFEST')
 
     import sys
-
 
     setup(name=DISTNAME,
           maintainer=MAINTAINER,
@@ -36,5 +33,6 @@ if __name__ == "__main__":
           url=DOWNLOAD_URL,
           download_url=DOWNLOAD_URL,
           packages=PACKAGES,
-          scripts=["scripts/upload_tabular_data.py"],
+          scripts=["scripts/upload_tabular_data.py",
+                   "scripts/download_tabular_data.py"],
           )
