@@ -30,7 +30,14 @@ if __name__ == '__main__':
                         help='Raise error if project is (not) existing. Default=None')
     parser.add_argument('-u', dest='update_values', action='store_true',
                         required=False, help='If you want to change values that are already in the db, set this.')
-
+    parser.add_argument('--subject_col', dest='subject_col', action='store',
+                        default= 'subject_id', help='name of the subject '
+                                                    'column in the tabular '
+                                                    'file')
+    parser.add_argument('--session_col', dest='session_col', action='store',
+                        default= 'session_id', help='name of the session '
+                                                    'column in the tabular '
+                                                    'file')
     args = parser.parse_args()
 
     upload_tabular_file_wrapper(args.filename, args.project_label,
@@ -38,4 +45,7 @@ if __name__ == '__main__':
                                 api_key=args.api_key,
                                 create=args.create,
                                 raise_on=args.raise_on,
-                                update_values=args.update_values)
+                                update_values=args.update_values,
+                                subject_col=args.subject_col,
+                                session_col=args.session_col
+                                )
