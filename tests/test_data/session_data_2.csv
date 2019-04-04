@@ -1,5 +1,5 @@
 subject,session,cog.ps2,cog.mem2,status
-s1,tp1,13.1,32,a
-s1,tp2,23,33,e
-s2,tp1,53,63,e
-s2,tp2,333,377,
+sub-s1,ses-tp1,13.1,32,a
+sub-s1,ses-tp2,23,33,e
+sub-s2,ses-tp1,53,63,e
+sub-s2,ses-tp2,333,377,
