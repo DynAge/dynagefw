@@ -20,15 +20,19 @@ def run_dynagefw_up_down_test():
     print(project_id, project_label)
 
     filename1 = "test_data/session_data_1.csv"
-    upload_tabular_file(fw, filename1, project_id)
+    upload_tabular_file(fw, filename1, project_id, subject_col="subject",
+                        session_col="session")
 
     filename_subject = "test_data/subject_data.xlsx"
-    upload_tabular_file(fw, filename_subject, project_id)
+    upload_tabular_file(fw, filename_subject, project_id, subject_col="subject",
+                        session_col="session")
 
     df_session_in = pd.read_csv(filename1).sort_index(axis=1).fillna("")
     df_subject_in = pd.read_excel(filename_subject).sort_index(axis=1).fillna("")
 
     df_subject_out, df_session_out = get_info_for_all(fw, project_id)
+    df_session_out.drop(columns=["BIDS.Label", "BIDS.Subject"], inplace=True)
+
     df_subject_out.sort_index(axis=1, inplace=True)
     df_session_out.sort_index(axis=1, inplace=True)
 
@@ -37,12 +41,16 @@ def run_dynagefw_up_down_test():
 
     # test additional columns
     filename2 = "test_data/session_data_2.csv"
-    upload_tabular_file(fw, filename2, project_id)
+    upload_tabular_file(fw, filename2, project_id, subject_col="subject",
+                        session_col="session")
 
     df_session_2_in = pd.read_csv(filename2).sort_index(axis=1).fillna("")
     df_session_in = pd.merge(df_session_in, df_session_2_in).sort_index(axis=1)
 
     df_subject_out, df_session_out = get_info_for_all(fw, project_id)
+    df_session_out.drop(columns=["BIDS.Label", "BIDS.Subject"], inplace=True)
+
+
     df_subject_out.sort_index(axis=1, inplace=True)
     df_session_out.sort_index(axis=1, inplace=True)
 
@@ -51,13 +59,16 @@ def run_dynagefw_up_down_test():
 
     # test update vals
     filename3 = "test_data/session_data_3.csv"
-    upload_tabular_file(fw, filename3, project_id, update_values=True)
+    upload_tabular_file(fw, filename3, project_id, update_values=True, subject_col="subject",
+                        session_col="session")
 
     df_session_2_in = pd.read_csv(filename2).sort_index(axis=1).fillna("")
     df_session_3_in = pd.read_csv(filename3).sort_index(axis=1).fillna("")
     df_session_in = pd.merge(df_session_2_in, df_session_3_in).sort_index(axis=1)
 
     df_subject_out, df_session_out = get_info_for_all(fw, project_id)
+    df_session_out.drop(columns=["BIDS.Label", "BIDS.Subject"], inplace=True)
+
     df_subject_out.sort_index(axis=1, inplace=True)
     df_session_out.sort_index(axis=1, inplace=True)
     pd.testing.assert_frame_equal(df_session_in, df_session_out)

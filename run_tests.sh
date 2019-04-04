@@ -1,1 +1,1 @@
-nosetests -v --with-coverage --with-doctest
+pytest --doctest-modules -v
