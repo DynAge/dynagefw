@@ -132,20 +132,17 @@ def download_tabular_file_wrapper(filename, project_label, group_id, api_key):
                              raise_on="missing")
     project_id = project["id"]
 
-    df_subject, df_session = get_info_for_all(fw, project_id)
-    df_subject.drop(columns=["session_id"], inplace=True)
-    df_session.drop(columns=["BIDS.Label", "BIDS.Subject"], inplace=True)
+    df = get_info_for_all(fw, project_id)
+    df.drop(columns=["BIDS.Label", "BIDS.Subject"], inplace=True)
 
-    df = pd.merge(df_subject, df_session, how="outer", on="subject")
     Path(filename).parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(filename, index=False, sep="\t")
 
 
-def get_info_for_all(fw, project_id):
+def get_info_for_all(fw, project_id, add_age_sex=True):
     """
     """
-    df_subject = pd.DataFrame([])
-    df_session = pd.DataFrame([])
+    df = pd.DataFrame([])
 
     # Get all sessions
     existing_sessions = fw.get_project_sessions(project_id)
@@ -155,39 +152,31 @@ def get_info_for_all(fw, project_id):
         session_name = session['label']
         subject_name = session['subject']['code']
 
-        info_nested_subject = get_info_dict("subject", session)
-        info_flat_subject = flatten_dict(info_nested_subject)
-        df_subject_ = pd.DataFrame(info_flat_subject, index=[subject_name])
-        df_subject = df_subject.append(df_subject_, sort=True)
-
         info_nested_session = get_info_dict("session", session)
         info_flat_session = flatten_dict(info_nested_session)
-        # add session age
-        # fixme age floating point issue
-        info_flat_session["age"] = session.age_years
+        # remove "subject_raw.sex"
+        _ = info_flat_session.pop("subject_raw.sex", "")
 
-        df_session_ = pd.DataFrame(info_flat_session, index=[subject_name])
+        df_ = pd.DataFrame(info_flat_session, index=[subject_name])
 
+        # add session, age and sex
+        df_["session"] = session_name
+        if add_age_sex:
+            df_["age"] = session.age_years
+            df_["sex"] = session.subject.sex
+        df = df.append(df_, sort=True)
 
-        df_session_["session"] = session_name
-        df_session = df_session.append(df_session_, sort=True)
+    df.index.name = "subject"
+    df = df.sort_index().reset_index()
 
-    df_subject.index.name = "subject"
-    df_session.index.name = "subject"
+    # bring important stuff to front
+    c = df.columns.tolist()
+    first_vars = ["subject", "session"]
+    if add_age_sex:
+        first_vars += ["sex", "age"]
+    for f in first_vars:
+        c.remove(f)
+    c = first_vars + c
+    df = df[c]
 
-    df_subject = df_subject.sort_index().reset_index()
-    df_session = df_session.sort_index().reset_index()
-
-    c = df_subject.columns.tolist()
-    c.remove("subject")
-    c = ["subject"] + c
-    df_subject = df_subject[c]
-    df_subject = df_subject.drop_duplicates().reset_index(drop=True)
-
-    c = df_session.columns.tolist()
-    c.remove("subject")
-    c.remove("session")
-    c = ["subject", "session"] + c
-    df_session = df_session[c]
-
-    return df_subject, df_session
+    return df

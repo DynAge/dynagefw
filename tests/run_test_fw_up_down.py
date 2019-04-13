@@ -30,14 +30,12 @@ def run_dynagefw_up_down_test():
     df_session_in = pd.read_csv(filename1).sort_index(axis=1).fillna("")
     df_subject_in = pd.read_excel(filename_subject).sort_index(axis=1).fillna("")
 
-    df_subject_out, df_session_out = get_info_for_all(fw, project_id)
+    df_session_out = get_info_for_all(fw, project_id, add_age_sex=False)
     df_session_out.drop(columns=["BIDS.Label", "BIDS.Subject"], inplace=True)
 
-    df_subject_out.sort_index(axis=1, inplace=True)
     df_session_out.sort_index(axis=1, inplace=True)
 
     pd.testing.assert_frame_equal(df_session_in, df_session_out)
-    pd.testing.assert_frame_equal(df_subject_in, df_subject_out)
 
     # test additional columns
     filename2 = "test_data/session_data_2.csv"
@@ -47,15 +45,13 @@ def run_dynagefw_up_down_test():
     df_session_2_in = pd.read_csv(filename2).sort_index(axis=1).fillna("")
     df_session_in = pd.merge(df_session_in, df_session_2_in).sort_index(axis=1)
 
-    df_subject_out, df_session_out = get_info_for_all(fw, project_id)
+    df_session_out = get_info_for_all(fw, project_id, add_age_sex=False)
     df_session_out.drop(columns=["BIDS.Label", "BIDS.Subject"], inplace=True)
 
 
-    df_subject_out.sort_index(axis=1, inplace=True)
     df_session_out.sort_index(axis=1, inplace=True)
 
     pd.testing.assert_frame_equal(df_session_in, df_session_out)
-    pd.testing.assert_frame_equal(df_subject_in, df_subject_out)
 
     # test update vals
     filename3 = "test_data/session_data_3.csv"
@@ -66,13 +62,11 @@ def run_dynagefw_up_down_test():
     df_session_3_in = pd.read_csv(filename3).sort_index(axis=1).fillna("")
     df_session_in = pd.merge(df_session_2_in, df_session_3_in).sort_index(axis=1)
 
-    df_subject_out, df_session_out = get_info_for_all(fw, project_id)
+    df_session_out = get_info_for_all(fw, project_id, add_age_sex=False)
     df_session_out.drop(columns=["BIDS.Label", "BIDS.Subject"], inplace=True)
 
-    df_subject_out.sort_index(axis=1, inplace=True)
     df_session_out.sort_index(axis=1, inplace=True)
     pd.testing.assert_frame_equal(df_session_in, df_session_out)
-    pd.testing.assert_frame_equal(df_subject_in, df_subject_out)
 
     print("Tests seem ok {} {}".format(project_label, project_id))
 
