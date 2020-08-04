@@ -110,6 +110,24 @@ def get_fw_api(api_key=None):
     return api_key
 
 
+def fix_timestamps(project_label, group_id, api_key=None, ):
+    from datetime import datetime, timezone
+
+    api_key = get_fw_api(api_key)
+    fw = flywheel.Client(api_key)
+    project = fw.lookup(f"{group_id}/{project_label}")
+
+    print(f"Fixing timestamps for {group_id} {project_label}.")
+
+    for subject in project.subjects():
+        for session in subject.sessions():
+            print(f"{subject.label} {session.label}")
+            session_num = int(session.label.replace("ses-tp", ""))
+            if not session_num:
+                raise RuntimeError(f"Session cannot be determined: {session.label}")
+            session.update({"timestamp": datetime(1900, 1, session_num, 0, 0, tzinfo=timezone.utc)})
+    print("Done")
+
 def upload_tabular_file_wrapper(filename, project_label, group_id,
                                 api_key=None, create=False, raise_on=None,
                                 update_values=False, subject_col=None,
