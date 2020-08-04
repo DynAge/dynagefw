@@ -9,7 +9,7 @@ TEARDOWN = True
 
 def run_dynagefw_up_down_test():
     api_key = get_fw_api()
-    fw = flywheel.Flywheel(api_key)
+    fw = flywheel.Client(api_key)
 
     timestamp = datetime.now().isoformat(timespec='minutes')
     project_label = "test_dynagefw_{}".format(timestamp)
@@ -21,11 +21,11 @@ def run_dynagefw_up_down_test():
 
     filename1 = "test_data/session_data_1.csv"
     upload_tabular_file(fw, filename1, project_id, subject_col="subject",
-                        session_col="session")
+                        session_col="session", create_emtpy_entry=True)
 
     filename_subject = "test_data/subject_data.xlsx"
     upload_tabular_file(fw, filename_subject, project_id, subject_col="subject",
-                        session_col="session")
+                        session_col="session", create_emtpy_entry=True)
 
     df_session_in = pd.read_csv(filename1).sort_index(axis=1).fillna("")
     df_subject_in = pd.read_excel(filename_subject).sort_index(axis=1).fillna("")
@@ -40,7 +40,7 @@ def run_dynagefw_up_down_test():
     # test additional columns
     filename2 = "test_data/session_data_2.csv"
     upload_tabular_file(fw, filename2, project_id, subject_col="subject",
-                        session_col="session")
+                        session_col="session", create_emtpy_entry=True)
 
     df_session_2_in = pd.read_csv(filename2).sort_index(axis=1).fillna("")
     df_session_in = pd.merge(df_session_in, df_session_2_in).sort_index(axis=1)
@@ -56,7 +56,7 @@ def run_dynagefw_up_down_test():
     # test update vals
     filename3 = "test_data/session_data_3.csv"
     upload_tabular_file(fw, filename3, project_id, update_values=True, subject_col="subject",
-                        session_col="session")
+                        session_col="session", create_emtpy_entry=True)
 
     df_session_2_in = pd.read_csv(filename2).sort_index(axis=1).fillna("")
     df_session_3_in = pd.read_csv(filename3).sort_index(axis=1).fillna("")
