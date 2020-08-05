@@ -1,48 +1,14 @@
-# fixme? Use the long tables to avoid issues with missing values?
-# check in fw
-
-
 """join all wide tables
 """
 from pathlib import Path
-import pandas as pd
-from functools import reduce
+from dynagefw.utils import join_wide_files
 
+# phenotype_in_dir = Path("/Volumes/lhab_data/LHAB/LHAB_v2.0.0/phenotype")
+# out_file = Path("/Users/franzliem/Desktop/fw_upload/joined_tables.tsv")
 in_dir = Path("/Users/franzliem/Desktop/fw_sandbox/phenotype_sandbox")
-out_file = Path("/Users/franzliem/Desktop/fw_sandbox/phenotype_sandbox_upload"
-                "/joined_tables.tsv")
-out_file.parent.mkdir(parents=True, exist_ok=True)
+out_file = Path("/Users/franzliem/Desktop/fw_sandbox/fw_upload/joined_tables.tsv")
 
-g = in_dir.glob("**/*_wide.tsv")
-df = pd.DataFrame([])
-dfs = []
+input_files = in_dir.glob("**/*_wide.tsv")
 
-for f in g:
-    # get domain and subdomain, e.g.,
-    # domain = 'demographics'
-    # subdomain = 'edu_isced' from
-    # phenotype_sandbox/01_Demographics/data/01_Edu_ISCED_wide.tsv
 
-    domain = f.parts[-3].split("_")[-1].lower()
-    subdomain = "_".join(f.parts[-1].split("_")[1:-1]).lower()
-
-    df_in = (pd.read_csv(f, sep="\t").
-             drop(columns=["conversion_date"])
-             )
-
-    # rename columns to {domain}.{subdomain}.{colName}
-    cols = df_in.drop(columns=["subject_id", "session_id"]).columns.values
-    ren = {}
-    for c in cols:
-        ren[c] = f"{domain}.{subdomain}.{c}"
-    df_in = df_in.rename(columns=ren)
-
-    dfs.append(df_in)
-
-df = reduce(lambda left, right: pd.merge(left, right,
-                                         on=["subject_id", "session_id"],
-                                         how="outer"
-                                         ), dfs)
-
-df.to_csv(out_file, sep="\t", index=False)
-print("")
+join_wide_files(input_files, out_file)

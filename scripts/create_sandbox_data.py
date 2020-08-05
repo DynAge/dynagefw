@@ -4,9 +4,9 @@
 from pathlib import Path
 import pandas as pd
 
-keep_subjects = ["lhabX0001", "lhabX0002", "lhabX0003", "lhabX0016"]
+keep_subjects = ["lhabX0001", "lhabX0003", "lhabX0007"]
 
-in_dir = Path("/Volumes/lhab_data/LHAB/LHAB_v1.1.1/phenotype")
+in_dir = Path("/Volumes/lhab_data/LHAB/LHAB_v2.0.0/phenotype")
 out_dir = Path("/Users/franzliem/Desktop/fw_sandbox/phenotype_sandbox")
 
 g = list(in_dir.glob("**/*.tsv"))

@@ -1,3 +1,5 @@
+from functools import reduce
+
 import flatten_dict as fdict
 from pathlib import Path
 import pandas as pd
@@ -187,3 +189,40 @@ def clean_nan(d, clean_val=""):
         if not isinstance(v, str) and np.isnan(v):
             d[k] = clean_val
     return d
+
+
+def join_wide_files(input_files, out_file):
+    """
+    concatenates wide lhab tables and rename columns to {domain}.{subdomain}.{colName}
+    """
+
+    out_file = Path(out_file)
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+
+    dfs = []
+    for f in input_files:
+        # get domain and subdomain, e.g.,
+        # domain = 'demographics'
+        # subdomain = 'edu_isced' from
+        # phenotype_sandbox/01_Demographics/data/01_Edu_ISCED_wide.tsv
+
+        domain = f.parts[-3].split("_")[-1].lower()
+        subdomain = "_".join(f.parts[-1].split("_")[1:-1]).lower()
+        df_in = pd.read_csv(f, sep="\t")
+
+        # rename columns to {domain}.{subdomain}.{colName}
+        cols = df_in.drop(columns=["subject_id", "session_id"]).columns.values
+        ren = {}
+        for c in cols:
+            ren[c] = f"{domain}.{subdomain}.{c}"
+        df_in = df_in.rename(columns=ren)
+
+        dfs.append(df_in)
+
+    df = reduce(lambda left, right: pd.merge(left, right,
+                                             on=["subject_id", "session_id"],
+                                             how="outer"
+                                             ), dfs)
+
+    df.to_csv(out_file, sep="\t", index=False)
+    print(f"Saved to {out_file}")

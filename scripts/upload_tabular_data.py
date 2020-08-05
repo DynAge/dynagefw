@@ -30,14 +30,17 @@ if __name__ == '__main__':
                         help='Raise error if project is (not) existing. Default=None')
     parser.add_argument('-u', dest='update_values', action='store_true',
                         required=False, help='If you want to change values that are already in the db, set this.')
+    parser.add_argument('--create-empty-entry', dest='create_emtpy_entry', action='store_true',
+                        required=False, help='If a session does not contain a test, do not create variable in '
+                                             'session info Default=False')
     parser.add_argument('--subject_col', dest='subject_col', action='store',
-                        default= 'subject_id', help='name of the subject '
-                                                    'column in the tabular '
-                                                    'file')
+                        default='subject_id', help='name of the subject '
+                                                   'column in the tabular '
+                                                   'file')
     parser.add_argument('--session_col', dest='session_col', action='store',
-                        default= 'session_id', help='name of the session '
-                                                    'column in the tabular '
-                                                    'file')
+                        default='session_id', help='name of the session '
+                                                   'column in the tabular '
+                                                   'file')
     args = parser.parse_args()
 
     upload_tabular_file_wrapper(args.filename, args.project_label,
@@ -46,6 +49,7 @@ if __name__ == '__main__':
                                 create=args.create,
                                 raise_on=args.raise_on,
                                 update_values=args.update_values,
+                                create_emtpy_entry=args.create_emtpy_entry,
                                 subject_col=args.subject_col,
                                 session_col=args.session_col
                                 )

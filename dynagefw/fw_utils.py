@@ -65,13 +65,15 @@ def upload_info(fw, project_id, subject_name, session_name, level, info_flat,
             subject_name, session_name))
 
 
-def upload_tabular_file(fw, filename, project_id, update_values=False,
+def upload_tabular_file(fw, filename, project_id, update_values=False, create_emtpy_entry=False,
                         subject_col="subject_id", session_col="session_id"):
     df = load_tabular_file(filename, subject_col, session_col)
 
     for i, row in df.iterrows():
         subject_name = row[subject_col]
         session_name = row[session_col]
+        if not create_emtpy_entry:
+            row = row.dropna()
         info = row.drop([subject_col, session_col]).to_dict()
 
         # preprend sub- and ses- prefix if not there
@@ -110,7 +112,7 @@ def get_fw_api(api_key=None):
     return api_key
 
 
-def fix_timestamps(project_label, group_id, api_key=None, ):
+def fix_timestamps(project_label, group_id, api_key=None):
     from datetime import datetime, timezone
 
     api_key = get_fw_api(api_key)
@@ -128,18 +130,43 @@ def fix_timestamps(project_label, group_id, api_key=None, ):
             session.update({"timestamp": datetime(1900, 1, session_num, 0, 0, tzinfo=timezone.utc)})
     print("Done")
 
-def upload_tabular_file_wrapper(filename, project_label, group_id,
-                                api_key=None, create=False, raise_on=None,
-                                update_values=False, subject_col=None,
-                                session_col=None):
+
+def create_views(project_label, group_id, api_key=None):
+    """
+    Creates predefined views on site level
+    """
     api_key = get_fw_api(api_key)
-    fw = flywheel.Flywheel(api_key)
+    fw = flywheel.Client(api_key)
+    project = fw.lookup(f"{group_id}/{project_label}")
+
+    views = {
+        "cognition": ["subject.sex", "session.age_years", "session.info.cognition"],
+        "health": ["subject.sex", "session.age_years", "session.info.health"],
+        "demographics": ["subject.sex", "session.age_years", "session.info.demographics"],
+        "motorskills": ["subject.sex", "session.age_years", "session.info.motorskills"],
+        "questionnaires": ["subject.sex", "session.age_years", "session.info.questionnaires"],
+        "all": ["subject.sex", "session.age_years", "session.info.cognition", "session.info.health",
+                "session.info.demographics", "session.info.motorskills", "session.info.questionnaires"],
+
+    }
+
+    for v_name, v_cols in views.items():
+        view = fw.View(label=v_name, columns=v_cols)
+        view_id = fw.add_view(project.id, view)
+
+    print("Done")
+
+
+def upload_tabular_file_wrapper(filename, project_label, group_id, api_key=None, create=False, raise_on=None,
+                                update_values=False, create_emtpy_entry=False, subject_col="subject_id",
+                                session_col="session_id"):
+    api_key = get_fw_api(api_key)
+    fw = flywheel.Client(api_key)
 
     project = handle_project(fw, project_label, group_id, create, raise_on)
     project_id = project["id"]
 
-    upload_tabular_file(fw, filename, project_id, update_values, subject_col,
-                        session_col)
+    upload_tabular_file(fw, filename, project_id, update_values, create_emtpy_entry, subject_col, session_col)
 
 
 def download_tabular_file_wrapper(filename, project_label, group_id, api_key):
