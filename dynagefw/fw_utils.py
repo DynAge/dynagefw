@@ -139,19 +139,20 @@ def create_views(project_label, group_id, api_key=None):
     fw = flywheel.Client(api_key)
     project = fw.lookup(f"{group_id}/{project_label}")
 
+    std_cols = ["subject.label", "session.label", "subject.sex", "session.age_years", ]
     views = {
-        "cognition": ["subject.sex", "session.age_years", "session.info.cognition"],
-        "health": ["subject.sex", "session.age_years", "session.info.health"],
-        "demographics": ["subject.sex", "session.age_years", "session.info.demographics"],
-        "motorskills": ["subject.sex", "session.age_years", "session.info.motorskills"],
-        "questionnaires": ["subject.sex", "session.age_years", "session.info.questionnaires"],
-        "all": ["subject.sex", "session.age_years", "session.info.cognition", "session.info.health",
-                "session.info.demographics", "session.info.motorskills", "session.info.questionnaires"],
+        "cognition": ["session.info.cognition"],
+        "health": ["session.info.health"],
+        "demographics": ["session.info.demographics"],
+        "motorskills": ["session.info.motorskills"],
+        "questionnaires": ["session.info.questionnaires"],
+        "all": ["session.info.cognition", "session.info.health", "session.info.demographics",
+                "session.info.motorskills", "session.info.questionnaires"],
 
     }
 
     for v_name, v_cols in views.items():
-        view = fw.View(label=v_name, columns=v_cols)
+        view = fw.View(label=v_name, columns=std_cols + v_cols)
         view_id = fw.add_view(project.id, view)
 
     print("Done")
