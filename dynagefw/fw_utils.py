@@ -139,21 +139,50 @@ def create_views(project_label, group_id, api_key=None):
     fw = flywheel.Client(api_key)
     project = fw.lookup(f"{group_id}/{project_label}")
 
-    std_cols = ["subject.label", "session.label", "subject.sex", "session.age_years", ]
+    std_cols = [("subject.label", "subject_id"), ("session.label", "session_id"), ("subject.sex", "sex"),
+                ("session.age_years", "age")]
     views = {
+        "all": ["session.info.cognition", "session.info.health", "session.info.demographics",
+                "session.info.motorskills", "session.info.questionnaires"],
         "cognition": ["session.info.cognition"],
         "health": ["session.info.health"],
         "demographics": ["session.info.demographics"],
         "motorskills": ["session.info.motorskills"],
         "questionnaires": ["session.info.questionnaires"],
-        "all": ["session.info.cognition", "session.info.health", "session.info.demographics",
-                "session.info.motorskills", "session.info.questionnaires"],
 
     }
 
     for v_name, v_cols in views.items():
-        view = fw.View(label=v_name, columns=std_cols + v_cols)
+        # remove views with the same name
+        existing_views = fw.get_views(project.id)
+        for e_view in existing_views:
+            if e_view.label == v_name:
+                fw.delete_view(e_view.id)
+                print(f"Old data view removed: {v_name}")
+
+        # initial view with hierarchical columns (e.g., only one col for all cognition subdomains)
+        initial_view = fw.View(label="init" + v_name, columns=std_cols + v_cols, include_labels=False)
+
+        df = fw.read_view_dataframe(initial_view, project.id)[v_cols]
+
+        unique_cols = set()
+        for _, row in df.iterrows():
+            d = row.dropna().to_dict()
+            from flatten_dict import flatten
+            flat_d = flatten(d, reducer='dot')
+            unique_cols = unique_cols | set(flat_d.keys())
+
+        # get an explicit list of hierarchical cols and clean aliases
+        unique_cols = list(unique_cols)
+        unique_cols.sort()
+        unique_cols_clean = [c.replace("session.info.", "") for c in unique_cols]
+        unique_cols_clean = [c.replace(".", "__") for c in unique_cols_clean]
+        cols = list(zip(unique_cols, unique_cols_clean))
+
+        # get final view.
+        view = fw.View(label=v_name, columns=std_cols + cols, include_labels=False)
         view_id = fw.add_view(project.id, view)
+        print(f"Data view added: {v_name}")
 
     print("Done")
 
