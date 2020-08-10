@@ -141,6 +141,7 @@ def create_views(project_label, group_id, api_key=None):
 
     std_cols = [("subject.label", "subject_id"), ("session.label", "session_id"), ("subject.sex", "sex"),
                 ("session.age_years", "age")]
+    std_cols_subject = [("subject.label", "subject_id")]
     views = {
         "all": ["session.info.cognition", "session.info.health", "session.info.demographics",
                 "session.info.motorskills", "session.info.questionnaires"],
@@ -149,6 +150,7 @@ def create_views(project_label, group_id, api_key=None):
         "demographics": ["session.info.demographics"],
         "motorskills": ["session.info.motorskills"],
         "questionnaires": ["session.info.questionnaires"],
+        "missing_info": ["subject.info.missing_info"],
 
     }
 
@@ -176,11 +178,16 @@ def create_views(project_label, group_id, api_key=None):
         unique_cols = list(unique_cols)
         unique_cols.sort()
         unique_cols_clean = [c.replace("session.info.", "") for c in unique_cols]
+        unique_cols_clean = [c.replace("subject.info.", "") for c in unique_cols_clean]
         unique_cols_clean = [c.replace(".", "__") for c in unique_cols_clean]
         cols = list(zip(unique_cols, unique_cols_clean))
 
         # get final view.
-        view = fw.View(label=v_name, columns=std_cols + cols, include_labels=False)
+        if v_name == "missing_info":
+            columns = std_cols_subject + cols
+        else:
+            columns = std_cols + cols
+        view = fw.View(label=v_name, columns=columns, include_labels=False)
         view_id = fw.add_view(project.id, view)
         print(f"Data view added: {v_name}")
 
