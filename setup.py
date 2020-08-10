@@ -34,6 +34,7 @@ if __name__ == "__main__":
           download_url=DOWNLOAD_URL,
           packages=PACKAGES,
           scripts=["scripts/upload_tabular_data.py",
-                   "scripts/fix_timestamps.py"
+                   "scripts/fix_timestamps.py",
+                   "scripts/check_jobs.py",
                    ],
           )
