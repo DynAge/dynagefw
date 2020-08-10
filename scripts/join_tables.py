@@ -7,8 +7,9 @@ from dynagefw.utils import join_wide_files
 # out_file = Path("/Users/franzliem/Desktop/fw_upload/joined_tables.tsv")
 in_dir = Path("/Users/franzliem/Desktop/fw_sandbox/phenotype_sandbox")
 out_file = Path("/Users/franzliem/Desktop/fw_sandbox/fw_upload/joined_tables.tsv")
+missings_out_file = Path("/Users/franzliem/Desktop/fw_sandbox/fw_upload/joined_tables_missings.tsv")
 
 input_files = in_dir.glob("**/*_wide.tsv")
+missing_input_files = in_dir.glob("**/*_missing_info.tsv")
 
-
-join_wide_files(input_files, out_file)
+join_wide_files(input_files, missing_input_files, out_file, missings_out_file)

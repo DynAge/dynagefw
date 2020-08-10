@@ -172,7 +172,8 @@ def load_tabular_file(filename, subject_col, session_col):
         raise Exception("Cannot infer filetype {}".format(f))
 
     if subject_col not in df.columns:
-        raise Exception("A '{subject_col}' column is required in the tabular data, but cannot be found in {}".format(f))
+        raise Exception(
+            "A '{subject_col}' column is required in the tabular data, but cannot be found in {}".format(f))
 
     if session_col not in df.columns:
         df[session_col] = ""
@@ -191,9 +192,10 @@ def clean_nan(d, clean_val=""):
     return d
 
 
-def join_wide_files(input_files, out_file):
+def join_wide_files(input_files, missing_input_files, out_file, missings_out_file):
     """
     concatenates wide lhab tables and rename columns to {domain}.{subdomain}.{colName}
+    and long missing infput tables (rename collumns to missing_info.{domain}.{subdomain}.{colName}
     """
 
     out_file = Path(out_file)
@@ -216,13 +218,47 @@ def join_wide_files(input_files, out_file):
         for c in cols:
             ren[c] = f"{domain}.{subdomain}.{c}"
         df_in = df_in.rename(columns=ren)
-
         dfs.append(df_in)
 
     df = reduce(lambda left, right: pd.merge(left, right,
                                              on=["subject_id", "session_id"],
                                              how="outer"
                                              ), dfs)
-
+    df = df.sort_values(by=["subject_id", "session_id"])
     df.to_csv(out_file, sep="\t", index=False)
     print(f"Saved to {out_file}")
+
+    if missings_out_file:
+        dfs = []
+        for f in missing_input_files:
+            domain = f.parts[-3].split("_")[-1].lower()
+            subdomain = "_".join(f.parts[-1].split("_")[1:-2]).lower()
+            df_in = pd.read_csv(f, sep="\t")
+            df_in = df_in.loc[df_in.data_missing]
+            df_in = df_in[['subject_id', 'session_id', 'info', 'test_name']].set_index(['subject_id'])
+
+            # make wide and format multiindex cols
+            df_in["test_name"] = df_in["test_name"] + "." + df_in["session_id"]
+            df_in.drop(columns=["session_id"], inplace=True)
+            df_in_wide = df_in.pivot(columns="test_name").reset_index()
+            out_cols = []
+            c = df_in_wide.columns.to_flat_index()
+            for cc in c:
+                out_cols.append("".join([cc[0].replace("info", ""), cc[1]]))
+            df_in_wide.columns = out_cols
+
+            # rename columns to missing_info.{domain}.{subdomain}.{colName}
+            cols = df_in_wide.drop(columns=["subject_id"]).columns.values
+            ren = {}
+            for c in cols:
+                ren[c] = f"missing_info.{domain}.{subdomain}.{c}"
+            df_in_wide = df_in_wide.rename(columns=ren)
+            dfs.append(df_in_wide)
+
+        df = reduce(lambda left, right: pd.merge(left, right,
+                                                 on=["subject_id"],
+                                                 how="outer"
+                                                 ), dfs)
+        df = df.sort_values(by=["subject_id"])
+        df.to_csv(missings_out_file, sep="\t", index=False)
+        print(f"Saved to {missings_out_file}")

@@ -16,18 +16,24 @@ if __name__ == "__main__":
                         help='API key. If not passed, looks for env var "FWAPI"')
     args = parser.parse_args()
 
-
     tmp_dir = TemporaryDirectory()
     print(f"saving intermed files to {tmp_dir.name}")
     out_file = Path(tmp_dir.name) / "joined_tables.tsv"
+    missings_out_file = Path(tmp_dir.name) / "joined_tables_missings.tsv"
 
     project_label = "lhab_mini7"
     group_id = "lhab"
 
     input_files = Path(args.phenotype_in_dir).glob("**/*_wide.tsv")
+    missing_input_files = Path(args.phenotype_in_dir).glob("**/*_missing_info.tsv")
 
-    join_wide_files(input_files, out_file)
+    join_wide_files(input_files, missing_input_files, out_file, missings_out_file)
+
+    # upload data
     upload_tabular_file_wrapper(out_file, project_label=args.project_label, group_id=args.group_id)
+
+    # upload missings info
+    upload_tabular_file_wrapper(missings_out_file, project_label=args.project_label, group_id=args.group_id)
 
     tmp_dir.cleanup()
     print(f"{tmp_dir.name} removed")
