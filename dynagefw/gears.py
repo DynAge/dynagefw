@@ -79,12 +79,19 @@ def check_jobs(analysis_id_file, api_key=None):
         print(f"{k}:\t{len(v)}")
 
 
-def cancle_jobs(search_str='state=pending', api_key=None):
+def cancle_jobs(pending=True, running=True, api_key=None):
     api_key = get_fw_api(api_key)
     fw = flywheel.Client(api_key)
 
-    jobs = fw.jobs.find(search_str)
-    print(f"Cancelling {len(jobs)} jobs")
+    searches = []
+    if pending:
+        searches.append('state=pending')
+    if running:
+        searches.append('state=running')
 
-    for job in jobs:
-        job.change_state('cancelled')
+    for search_str in searches:
+        jobs = fw.jobs.find(search_str)
+        print(f"Cancelling {len(jobs)} jobs")
+
+        for job in jobs:
+            job.change_state('cancelled')
