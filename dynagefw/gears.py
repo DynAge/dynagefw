@@ -4,6 +4,9 @@ from pprint import pprint
 from datetime import datetime
 from pathlib import Path
 import pickle
+import os
+from zipfile import ZipFile
+import shutil
 
 
 def run_gear_on_subjects(group_id, project_label, gear, save_dir="~/fw_jobs", config=None, gear_version=None,
@@ -95,3 +98,71 @@ def cancle_jobs(pending=True, running=True, api_key=None):
 
         for job in jobs:
             job.change_state('cancelled')
+
+
+def delete_canceled_analysis(group_id, project_label, api_key=None):
+    api_key = get_fw_api(api_key)
+    fw = flywheel.Client(api_key)
+    project = fw.lookup(f"{group_id}/{project_label}")
+
+    for subject in project.subjects():
+        print(subject.label)
+        ana_list = fw.get_container_analyses(subject.id)
+        for analysis in ana_list:
+            job = fw.get_job(analysis.job)
+            if job.state == "cancelled":
+                fw.delete_container_analysis(subject.id, analysis.id)
+
+
+def download_analysis(group_id, project_label, analysis_label, file_starts_with, save_dir, api_key=None):
+    api_key = get_fw_api(api_key)
+    fw = flywheel.Client(api_key)
+    project = fw.lookup(f"{group_id}/{project_label}")
+
+    orig_dir = Path.cwd()
+    out_dir = Path(save_dir) / analysis_label
+    zip_out_dir = out_dir / "00_zip"
+    extract_out_dir = out_dir / "00_extract"
+    zip_out_dir.mkdir(parents=True, exist_ok=True)
+    extract_out_dir.mkdir(parents=True, exist_ok=True)
+
+    os.chdir(zip_out_dir)
+
+    print("DOWNLOAD")
+    for subject in project.subjects():
+        print(subject.label)
+        analysis = fw.get_container_analyses(subject.id, filter=f'label="{analysis_label}"')
+        assert len(analysis) <= 1, "More than one analysis found"
+        if analysis:
+            if analysis[0].files:
+                files = [file_obj.name for file_obj in analysis[0].files]
+            else:
+                files = []
+
+            # filter files
+            download_files = []
+            if file_starts_with:
+                for f in files:
+                    if f.startswith(file_starts_with):
+                        download_files.append(f)
+            else:
+                download_files = files
+
+            for file in download_files:
+                print(file)
+                analysis[0].download_file(file, file)
+
+    print("UNZIP")
+    zipfiles = list(zip_out_dir.glob("*.zip"))
+    for file in zipfiles:
+        with ZipFile(file, "r") as zip_ref:
+            zip_ref.extractall(extract_out_dir)
+
+    print("MOVE AND CLEAN UP")
+    os.chdir(extract_out_dir)
+    os.system(f"mv */* {out_dir}")
+    shutil.rmtree(extract_out_dir)
+    shutil.rmtree(zip_out_dir)
+
+    print("DONE")
+    os.chdir(orig_dir)
