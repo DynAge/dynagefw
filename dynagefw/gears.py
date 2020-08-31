@@ -8,10 +8,12 @@ import os
 from zipfile import ZipFile
 import shutil
 from warnings import warn
+import time
+from datetime import datetime
 
 
 def run_gear(group_id, project_label, gear, save_dir="~/fw_jobs", config=None, gear_version=None,
-             analysis_label_suffix="default", api_key=None, level="subject"):
+             analysis_label_suffix="default", api_key=None, level="subject", subjects=[]):
     assert level in ["subject", "session"], f'level needs to be "subject" or "session", not {level}'
 
     api_key = get_fw_api(api_key)
@@ -34,12 +36,19 @@ def run_gear(group_id, project_label, gear, save_dir="~/fw_jobs", config=None, g
 
     containers = []
     for subject in project.subjects():
-        if level == "session":
-            for session in subject.sessions():
-                containers.append(session)
+        if subjects:
+            if subject.label in subjects:
+                use_subject = True
+            else:
+                use_subject = False
         else:
-            # containers.append(fw.get_subject(subject.id))
-            containers.append(subject)
+            use_subject = True
+        if use_subject:
+            if level == "session":
+                for session in subject.sessions():
+                    containers.append(session)
+            else:
+                containers.append(subject)
 
     if analysis_label_suffix:
         analysis_label_suffix = "__" + analysis_label_suffix
@@ -57,8 +66,38 @@ def run_gear(group_id, project_label, gear, save_dir="~/fw_jobs", config=None, g
     c = input("\n\nContinue (y): ")
     if c == "y":
         analysis_ids = []
-        for container in containers:
-            analysis_id = gear.run(analysis_label=analysis_label, config=gear_config, inputs={}, destination=container)
+        for n, container in enumerate(containers):
+            try:
+                analysis_id = gear.run(analysis_label=analysis_label, config=gear_config, inputs={},
+                                       destination=container)
+                print(n, container.label)
+            except:
+                try:
+                    t = 10
+                    print(f"Could not submit analysis {n} {container.id}. Wait {t} seconds and retry {datetime.now()}")
+                    time.sleep(t)
+                    analysis_id = gear.run(analysis_label=analysis_label, config=gear_config, inputs={},
+                                           destination=container)
+                    print(n, container.label)
+                except:
+                    try:
+                        t = 20
+                        print(f"Could not submit analysis {n} {container.id}. \
+                            Wait {t} seconds and retry {datetime.now()}")
+                        time.sleep(t)
+                        analysis_id = gear.run(analysis_label=analysis_label, config=gear_config, inputs={},
+                                               destination=container)
+                        print(n, container.label)
+                    except:
+                        t = 60
+                        print(
+                            f"Could not submit analysis {n} {container.id}. Wait {t} seconds and retry. \
+                            last try! {datetime.now()}")
+                        time.sleep(t)
+                        analysis_id = gear.run(analysis_label=analysis_label, config=gear_config, inputs={},
+                                               destination=container)
+                        print(n, container.label)
+
             analysis_ids.append(analysis_id)
 
         save_dir = Path(save_dir).expanduser()
@@ -109,6 +148,7 @@ def cancle_jobs(pending=True, running=True, api_key=None):
         print(f"Cancelling {len(jobs)} jobs")
 
         for job in jobs:
+            print(job.id)
             job.change_state('cancelled')
 
 
@@ -123,6 +163,7 @@ def delete_canceled_analysis(group_id, project_label, api_key=None):
         for analysis in ana_list:
             job = fw.get_job(analysis.job)
             if job.state == "cancelled":
+                print(analysis.id)
                 fw.delete_container_analysis(subject.id, analysis.id)
 
 
@@ -203,8 +244,9 @@ def download_analysis(group_id, project_label, analysis_label, file_starts_with,
         in_file.rename(out_file)
 
     if file_overwritten:
+        file_overwritten_str = '\n'.join([str(f) for f in set(file_overwritten)])
         warn(f"{len(set(file_overwritten))} have been overwritten, because of multiple files with the same name in "
-             f"different analyses.\n{set(file_overwritten)}")
+             f"different analyses.\n{file_overwritten_str}")
     shutil.rmtree(extract_out_dir)
     shutil.rmtree(zip_out_dir)
 

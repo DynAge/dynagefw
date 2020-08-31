@@ -262,3 +262,29 @@ def get_info_for_all(fw, project_id, add_age_sex=True):
     df = df[c]
 
     return df
+
+
+def delete_lhab_info(project_label, group_id, api_key=None, delete_subject_info_keys=["missing_info"],
+                     delete_session_info_keys=['cognition', 'health', 'demographics', 'motorskills',
+                                               'questionnaires']):
+    """
+    Removes keys from the info dict on subject and session levels
+    Needs to be run in case variables are discontinued
+    """
+    api_key = get_fw_api(api_key)
+    fw = flywheel.Client(api_key)
+    project = fw.lookup(f"{group_id}/{project_label}")
+
+    print(f"Deleting LHAB-related values (phenotype) in info dict for {group_id} {project_label}.")
+
+    for subject in project.subjects():
+
+        for k in delete_subject_info_keys:
+            print(f"{subject.label} {k}")
+            subject.delete_info(k)
+
+        for session in subject.sessions():
+            for k in delete_session_info_keys:
+                print(f"{subject.label} {session.label} {k}")
+                session.delete_info(k)
+    print("DONE")

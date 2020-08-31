@@ -1,4 +1,4 @@
-from dynagefw.gears import run_gear_on_subjects
+from dynagefw.gears import run_gear
 import os
 
 group_id = "lhab"
@@ -7,8 +7,9 @@ gear = "bids-fmriprep"
 
 config = {}
 config["gear-FREESURFER_LICENSE"] = os.environ["gear_FREESURFER_LICENSE"]
-config["n_cpus"] = 8
+config["n_cpus"] = 4
 config["fs-no-reconall"] = True
 config["longitudinal"] = True
 
-run_gear_on_subjects(group_id, project_label, gear, config=config)
+subjects = ["sub-lhabX0001"]
+run_gear(group_id, project_label, gear, config=config, level="subject", subjects=["sub-lhabX0001"])
