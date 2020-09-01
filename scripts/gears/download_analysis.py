@@ -1,5 +1,4 @@
 import argparse
-from dynagefw.fw_utils import create_views
 from dynagefw.gears import download_analysis
 
 if __name__ == "__main__":
