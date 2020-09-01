@@ -2,7 +2,7 @@ import argparse
 from dynagefw.gears import delete_canceled_analysis
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Removes analysis that have been canceled')
+    parser = argparse.ArgumentParser(description='Removes analysis that have been canceled or have failed')
 
     parser.add_argument('group_id', help='Group ID on Flywheel instance.')
     parser.add_argument('project_label', action='store', help='Project Label on Flywheel instance')

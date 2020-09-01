@@ -162,7 +162,7 @@ def delete_canceled_analysis(group_id, project_label, api_key=None):
         ana_list = fw.get_container_analyses(subject.id)
         for analysis in ana_list:
             job = fw.get_job(analysis.job)
-            if job.state == "cancelled":
+            if (job.state == "cancelled") or (job.state == "failed"):
                 print(analysis.id)
                 fw.delete_container_analysis(subject.id, analysis.id)
 
