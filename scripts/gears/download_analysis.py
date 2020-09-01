@@ -8,9 +8,8 @@ if __name__ == "__main__":
     parser.add_argument('group_id', help='Group ID on Flywheel instance.')
     parser.add_argument('project_label', action='store', help='Project Label on Flywheel instance')
     parser.add_argument('analysis_label', action='store', help='Exact label of analysis')
-    parser.add_argument('analysis_label', action='store', help='Exact label of analysis')
-    parser.add_argument('save_dir', action='store', help='Directory to save outputs \
-    (will create folder with analysis label in this folder)')
+    parser.add_argument('save_dir', action='store',
+                        help='Directory to save outputs (will create folder with analysis label in this folder)')
     parser.add_argument('--file-starts-with', dest='file_starts_with', action='store', required=False,
                         help='string for filtering files in output. Only downloads files that startwith string.\
                              Download all files if empty')
