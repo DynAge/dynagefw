@@ -167,7 +167,7 @@ def delete_canceled_analysis(group_id, project_label, api_key=None):
                 fw.delete_container_analysis(subject.id, analysis.id)
 
 
-def download_analysis(group_id, project_label, analysis_label, file_starts_with, save_dir, api_key=None):
+def download_analysis(group_id, project_label, analysis_label, save_dir, file_starts_with=None, api_key=None):
     """
     Looks for analysis matching the {analysis_label}
     if they cannot be found on the subject levle, the sessions are queried
