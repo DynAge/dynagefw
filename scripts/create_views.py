@@ -1,5 +1,5 @@
 """
-the fw gui lists sessions according to timestamps. to make this consistent, we create fake timestamps for the sessions
+after uploading the phenotype data, creates data views
 """
 import argparse
 from dynagefw.fw_utils import create_views

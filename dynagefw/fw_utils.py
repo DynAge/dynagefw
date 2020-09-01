@@ -264,7 +264,7 @@ def get_info_for_all(fw, project_id, add_age_sex=True):
     return df
 
 
-def delete_lhab_info(project_label, group_id, api_key=None, delete_subject_info_keys=["missing_info"],
+def delete_lhab_info(group_id, project_label, api_key=None, delete_subject_info_keys=["missing_info"],
                      delete_session_info_keys=['cognition', 'health', 'demographics', 'motorskills',
                                                'questionnaires']):
     """
