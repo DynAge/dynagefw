@@ -8,4 +8,4 @@ if __name__ == "__main__":
                         help='API key. If not passed, looks for env var "FWAPI"')
     args = parser.parse_args()
 
-    cancle_jobs(api_key=args.api_keyl)
+    cancle_jobs(api_key=args.api_key)
