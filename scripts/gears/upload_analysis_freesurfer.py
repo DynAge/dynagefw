@@ -17,4 +17,4 @@ upload_analysis(group_id, project_label, root_dir, level="project", note=note, s
 
 search_strings = ["{subject}*"]
 upload_analysis(group_id, project_label, root_dir, level="subject", note=note,
-                search_strings=search_strings, check_ignored_files=True)
+                search_strings_template=search_strings, check_ignored_files=True)
