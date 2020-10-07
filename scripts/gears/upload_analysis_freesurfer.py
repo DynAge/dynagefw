@@ -2,9 +2,9 @@ from dynagefw.upload_analysis import upload_analysis
 import os
 
 group_id = "lhab"
-project_label = "lhab_mini"
+project_label = "LHAB"
 
-root_dir = "/Volumes/lhab_data/LHAB/LHAB_v2.0.0/derivates/freesurfer_v6.0.1-5"
+root_dir = "/mnt/lhab_fw/freesurfer_v6.0.1-5/"
 
 note = """
 freesurfer bids-app v6.0.1-5 (https://github.com/bids-apps/freesurfer)
