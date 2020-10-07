@@ -166,6 +166,17 @@ def delete_canceled_analysis(group_id, project_label, api_key=None):
                 print(analysis.id)
                 fw.delete_container_analysis(subject.id, analysis.id)
 
+def delete_analyses(group_id, project_label, analysis_label, api_key=None):
+    api_key = get_fw_api(api_key)
+    fw = flywheel.Client(api_key)
+    project = fw.lookup(f"{group_id}/{project_label}")
+
+    for subject in project.subjects():
+        print(subject.label)
+        ana_list = fw.get_container_analyses(subject.id, filter=f'label="{analysis_label}"')
+        for analysis in ana_list:
+            print(analysis.id)
+            fw.delete_container_analysis(subject.id, analysis.id)
 
 def download_analysis(group_id, project_label, analysis_label, save_dir, file_starts_with=None, api_key=None):
     """
