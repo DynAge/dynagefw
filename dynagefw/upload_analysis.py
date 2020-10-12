@@ -13,6 +13,8 @@ from datetime import datetime
 import sys
 from zipfile import ZipFile
 from tempfile import TemporaryDirectory
+import backoff
+from OpenSSL.SSL import WantWriteError
 
 
 def get_subject_containers(project, subjects):
@@ -95,7 +97,12 @@ def zip_and_upload_data(fw, container, root_dir, analysis_label, search_strings,
                 print(f"    zip and upload {len(files)} files")
                 zip_file_name = f"{analysis_label}_{container.label}"
                 zip_file = zip_files(files, zip_file_name, tmp_dir)
-                analysis.upload_output(zip_file)
+
+                @backoff.on_exception(backoff.expo, WantWriteError, max_time=600)
+                def upload_(analysis, zip_file):
+                    analysis.upload_output(zip_file)
+
+                upload_(analysis, zip_file)
     return files
 
 
