@@ -101,8 +101,11 @@ def zip_and_upload_data(fw, container, root_dir, analysis_label, search_strings,
                 @backoff.on_exception(backoff.expo, WantWriteError, max_time=600)
                 def upload_(analysis, zip_file):
                     analysis.upload_output(zip_file)
-
-                upload_(analysis, zip_file)
+                try:
+                    upload_(analysis, zip_file)
+                except Exception:
+                    fw.delete_container_analysis(container.id, analysis.id)
+                    raise RuntimeError(f"Upload for {container.label} failed. Removed analysis and stopping")
     return files
 
 
