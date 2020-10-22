@@ -74,7 +74,7 @@ def list_files(root_dir, search_strings):
 
 def zip_files(files, zip_file_name, tmp_dir):
     zip_file = Path(str(Path(tmp_dir) / zip_file_name) + ".zip")
-    with ZipFile(zip_file, 'w') as z:
+    with ZipFile(zip_file, mode='w', strict_timestamps=False) as z:
         for file in files:
             z.write(file)
     return zip_file
